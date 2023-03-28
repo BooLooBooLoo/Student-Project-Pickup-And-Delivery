@@ -32,7 +32,7 @@ class Solution :
                              (self.problem.pointsCoord[ind1][1]-self.problem.pointsCoord[ind2][1])**2)
             return dist
     
-    def Feasability(self):
+    def Feasability(self, driver, ride):
         #Also check if all the rides are dispatch and if the ride isnt already assigned to a driver
         if driver in self.problem.drivers and ride in self.problem.rides:
             return True
