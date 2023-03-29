@@ -92,24 +92,25 @@ class Method :
         solution = Solution(tupleList, self.problem)
         return solution
 
-    def SimpleSwap(self, solution):
+    def SimpleSwapDriver(self, solution):
         
         #Swap 2 rides between 2 drivers
         randDriver1 = randDriver2 = 0
+        #Takes 2 random drivers 
         while randDriver1 == randDriver2 :
             randDriver1 = random.randint(0,len(self.problem.drivers)-1)
             randDriver2 = random.randint(0,len(self.problem.drivers)-1)
-        
+        #If both drivers have rides, swap 2 random rides
         if len(solution.driversRides[randDriver1][1]) > 0 and len(solution.driversRides[randDriver2][1]) > 0:
             randRide1 = random.randint(0,len(solution.driversRides[randDriver1][1])-1)
             randRide2 = random.randint(0,len(solution.driversRides[randDriver2][1])-1)
             solution.driversRides[randDriver1][1][randRide1], solution.driversRides[randDriver2][1][randRide2] = solution.driversRides[randDriver2][1][randRide2], solution.driversRides[randDriver1][1][randRide1]
-        
+        #If one driver has rides and the other one doesnt, swap a random ride with an empty list
         elif len(solution.driversRides[randDriver1][1]) > 0 and len(solution.driversRides[randDriver2][1]) == 0:
             randRide1 = random.randint(0,len(solution.driversRides[randDriver1][1])-1)
             solution.driversRides[randDriver2][1].append(solution.driversRides[randDriver1][1][randRide1])
             solution.driversRides[randDriver1][1].pop(randRide1)
-        
+        #Same but with the other driver
         elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) > 0:
             randRide2 = random.randint(0,len(solution.driversRides[randDriver2][1])-1)
             solution.driversRides[randDriver1][1].append(solution.driversRides[randDriver2][1][randRide2])
@@ -117,7 +118,7 @@ class Method :
         
         return solution
 
-    def SwapAll(self, solution):
+    def SwapAllDriver(self, solution):
         
         #give all rides from a driver to another driver
         randDriver1 = randDriver2 = 0
@@ -139,7 +140,24 @@ class Method :
             print("No rides to swap")
         
         return solution
-        
+    def OneSwapRide(self, solution):
+        #Swap 2 rides of the same driver
+        randDriver = random.randint(0,len(self.problem.drivers)-1)
+        if len(solution.driversRides[randDriver][1]) > 1:
+            randRide1 = random.randint(0,len(solution.driversRides[randDriver][1])-1)
+            randRide2 = random.randint(0,len(solution.driversRides[randDriver][1])-1)
+            solution.driversRides[randDriver][1][randRide1], solution.driversRides[randDriver][1][randRide2] = solution.driversRides[randDriver][1][randRide2], solution.driversRides[randDriver][1][randRide1]
+        else:
+            print("No rides to swap")
+        return solution
+    def SimulatedAnnealing(self, solution, maxIter):
+        #Simulated Annealing
+        for i in range (0,maxIter):
+            solution2 = self.RandomSolution()
+            delta = solution2.objective - solution.objective
+            if delta < 0:
+                solution = solution2
+        return solution
     
 method = Method(prob)
 sol = method.RandomSolution()
