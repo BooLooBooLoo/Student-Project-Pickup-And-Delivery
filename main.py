@@ -17,7 +17,7 @@ class Problem :
         self.pointsCoord = pointsCoord
         self.rides = rides
         
-      
+prob = Problem([1,2,3],[(0,0),(0,0),(0,0)],1,1,['Home','School','Work'],[(0,0),(0,0),(0,0)],[('Home','School'),('Work','Home'),('School','Work')])
 
 class Solution :
     
@@ -34,9 +34,16 @@ class Solution :
                              (self.problem.pointsCoord[ind1][1]-self.problem.pointsCoord[ind2][1])**2)
             return dist
     
-    def Feasability(self, driver, ride):
+    def Feasability(self, prob):
         #Also check if all the rides are dispatch and if the ride isnt already assigned to a driver
-        if driver in self.problem.drivers and ride in self.problem.rides :
+        feasible = True
+        for i in range (0,len(self.driversRides)):
+            if self.driversRides[i][0] not in self.problem.drivers :
+                feasible = False
+            for j in range (0,len(self.driversRides[i][1])):
+                if self.driversRides[i][1][j] not in self.problem.rides :
+                    feasible = False
+        if prob.driver in self.problem.drivers and prob.ride in self.problem.rides :
             return True
         else:
             return False
@@ -65,3 +72,58 @@ class Method :
     
         solution = Solution(tupleList, self.problem)
         return solution
+
+    def SimpleSwap(self, solution):
+        
+        #Swap 2 rides between 2 drivers
+        randDriver1 = randDriver2 = 0
+        while randDriver1 == randDriver2 :
+            randDriver1 = random.randint(0,len(self.problem.drivers)-1)
+            randDriver2 = random.randint(0,len(self.problem.drivers)-1)
+        
+        if len(solution.driversRides[randDriver1][1]) > 0 and len(solution.driversRides[randDriver2][1]) > 0:
+            randRide1 = random.randint(0,len(solution.driversRides[randDriver1][1])-1)
+            randRide2 = random.randint(0,len(solution.driversRides[randDriver2][1])-1)
+            solution.driversRides[randDriver1][1][randRide1], solution.driversRides[randDriver2][1][randRide2] = solution.driversRides[randDriver2][1][randRide2], solution.driversRides[randDriver1][1][randRide1]
+        
+        elif len(solution.driversRides[randDriver1][1]) > 0 and len(solution.driversRides[randDriver2][1]) == 0:
+            randRide1 = random.randint(0,len(solution.driversRides[randDriver1][1])-1)
+            solution.driversRides[randDriver2][1].append(solution.driversRides[randDriver1][1][randRide1])
+            solution.driversRides[randDriver1][1].pop(randRide1)
+        
+        elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) > 0:
+            randRide2 = random.randint(0,len(solution.driversRides[randDriver2][1])-1)
+            solution.driversRides[randDriver1][1].append(solution.driversRides[randDriver2][1][randRide2])
+            solution.driversRides[randDriver2][1].pop(randRide2)
+        
+        return solution
+
+    def SwapAll(self, solution):
+        
+        #give all rides from a driver to another driver
+        randDriver1 = randDriver2 = 0
+        while randDriver1 == randDriver2 :
+            randDriver1 = random.randint(0,len(self.problem.drivers)-1)
+            randDriver2 = random.randint(0,len(self.problem.drivers)-1)
+        
+        if len(solution.driversRides[randDriver1][1]) > 0 :
+            for i in range (0,len(solution.driversRides[randDriver1][1])):
+                solution.driversRides[randDriver2][1].append(solution.driversRides[randDriver1][1][i])
+            solution.driversRides[randDriver1][1].clear()
+        
+        elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) > 0:
+            for i in range (0,len(solution.driversRides[randDriver2][1])):
+                solution.driversRides[randDriver1][1].append(solution.driversRides[randDriver2][1][i])
+            solution.driversRides[randDriver2][1].clear()
+        
+        elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) == 0:
+            print("No rides to swap")
+        
+        return solution
+        
+    
+method = Method(prob)
+sol = method.RandomSolution()
+print(sol.driversRides)
+print(method.SimpleSwap(sol).driversRides)
+print(method.SwapAll(sol).driversRides)
