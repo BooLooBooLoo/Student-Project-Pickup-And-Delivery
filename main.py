@@ -17,7 +17,7 @@ class Problem :
         self.pointsCoord = pointsCoord
         self.rides = rides
         
-prob = Problem([1,2,3],[(0,0),(0,0),(0,0)],1,1,['Home','School','Work'],[(0,0),(0,0),(0,0)],[('Home','School'),('Work','Home'),('School','Work')])
+prob = Problem([1,2,3],[(0,0),(0,0),(0,0)],1,1,['Home','School','Work'],[(2,2),(1,1),(3,3)],[('Home','School'),('Work','Home'),('School','Work')])
 
 class Solution :
     
@@ -32,24 +32,43 @@ class Solution :
             ind2 = self.problem.points.index(point2)
             dist = math.sqrt((self.problem.pointsCoord[ind1][0]-self.problem.pointsCoord[ind2][0])**2 + 
                              (self.problem.pointsCoord[ind1][1]-self.problem.pointsCoord[ind2][1])**2)
+            print("Distance between " + point1 + " and " + point2 + " is " + str(dist))
             return dist
     
     def Feasability(self, prob):
         #Also check if all the rides are dispatch and if the ride isnt already assigned to a driver
         feasible = True
+        
         for i in range (0,len(self.driversRides)):
             if self.driversRides[i][0] not in self.problem.drivers :
                 feasible = False
             for j in range (0,len(self.driversRides[i][1])):
                 if self.driversRides[i][1][j] not in self.problem.rides :
                     feasible = False
-        if prob.driver in self.problem.drivers and prob.ride in self.problem.rides :
-            return True
-        else:
-            return False
+        
+        rideSum = []
+        for i in range (0,len(self.driversRides)):
+            rideSum.append(len(self.driversRides[i][1]))
+        if sum(rideSum) != len(self.problem.rides):
+            feasible = False
+        
+        return feasible
+        
     
     def ObjectiveFunction(self, problem, driversRides):
-        #Calculate the total distance and time for each driver and return the total cost in function of it
+        #Calculate the total cost of all the routes
+        print(self.driversRides)
+        for i in range (0,len(driversRides)):
+            if len(driversRides[i][1]) != 0:
+                ind = self.problem.points.index(driversRides[i][1][0][0])
+                distance = math.sqrt((self.problem.driversCoord[i][0]-self.problem.pointsCoord[ind][0])**2 + 
+                                (self.problem.driversCoord[i][1]-self.problem.pointsCoord[ind][1])**2)
+                self.objective += distance
+                print("Distance between driver ", driversRides[i][0]  ," and ", driversRides[i][1][0][0], " is ", distance)
+                for j in range (0,len(driversRides[i][1])):
+                    self.objective += self.DistanceBetweenPoints(driversRides[i][1][j][0],driversRides[i][1][j][1]) * self.problem.driversCost
+                for j in range(0,len(driversRides[i][1])-1):
+                    self.objective += self.DistanceBetweenPoints(driversRides[i][1][j][1],driversRides[i][1][j+1][0]) * self.problem.driversCost
         return 0
 
 
@@ -124,6 +143,5 @@ class Method :
     
 method = Method(prob)
 sol = method.RandomSolution()
-print(sol.driversRides)
-print(method.SimpleSwap(sol).driversRides)
-print(method.SwapAll(sol).driversRides)
+sol.ObjectiveFunction(prob, sol.driversRides)
+print(sol.objective)
