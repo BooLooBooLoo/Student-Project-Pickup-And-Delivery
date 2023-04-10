@@ -32,7 +32,6 @@ class Solution :
             ind2 = self.problem.points.index(point2)
             dist = math.sqrt((self.problem.pointsCoord[ind1][0]-self.problem.pointsCoord[ind2][0])**2 + 
                              (self.problem.pointsCoord[ind1][1]-self.problem.pointsCoord[ind2][1])**2)
-            print("Distance between " + point1 + " and " + point2 + " is " + str(dist))
             return dist
     
     def Feasability(self, prob):
@@ -57,19 +56,17 @@ class Solution :
     
     def ObjectiveFunction(self, problem, driversRides):
         #Calculate the total cost of all the routes
-        print(self.driversRides)
         for i in range (0,len(driversRides)):
             if len(driversRides[i][1]) != 0:
                 ind = self.problem.points.index(driversRides[i][1][0][0])
                 distance = math.sqrt((self.problem.driversCoord[i][0]-self.problem.pointsCoord[ind][0])**2 + 
                                 (self.problem.driversCoord[i][1]-self.problem.pointsCoord[ind][1])**2)
                 self.objective += distance
-                print("Distance between driver ", driversRides[i][0]  ," and ", driversRides[i][1][0][0], " is ", distance)
                 for j in range (0,len(driversRides[i][1])):
                     self.objective += self.DistanceBetweenPoints(driversRides[i][1][j][0],driversRides[i][1][j][1]) * self.problem.driversCost
                 for j in range(0,len(driversRides[i][1])-1):
                     self.objective += self.DistanceBetweenPoints(driversRides[i][1][j][1],driversRides[i][1][j+1][0]) * self.problem.driversCost
-        return 0
+        return self.objective
 
 
 #Do the class method to construct a solution and check if it is feasible
@@ -123,7 +120,6 @@ class Method :
         while randDriver1 == randDriver2 :
             randDriver1 = random.randint(0,len(self.problem.drivers)-1)
             randDriver2 = random.randint(0,len(self.problem.drivers)-1)
-        print("Drivers ", randDriver1, " and ", randDriver2, " are swapped")
         if len(solution.driversRides[randDriver1][1]) > 0 and len(solution.driversRides[randDriver2][1]) > 0:
             if len(solution.driversRides[randDriver1][1]) > len(solution.driversRides[randDriver2][1]):
                 for i in range (0,len(solution.driversRides[randDriver2][1])):
@@ -151,8 +147,6 @@ class Method :
                 solution.driversRides[randDriver1][1].append(solution.driversRides[randDriver2][1][i])
             
             solution.driversRides[randDriver2][1].clear()
-        elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) == 0:
-            print("Both drivers have no rides")
         return solution
     
     def GiveOneDriver(self, solution):
@@ -168,8 +162,6 @@ class Method :
             randRide1 = random.randint(0,len(solution.driversRides[randDriver2][1])-1)
             solution.driversRides[randDriver1][1].append(solution.driversRides[randDriver2][1][randRide1])
             solution.driversRides[randDriver2][1].pop(randRide1)
-        else:
-            print("Both drivers have no rides")
         return solution
     
     def GiveAllDriver(self, solution):
@@ -188,11 +180,7 @@ class Method :
         elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) > 0:
             for i in range (0,len(solution.driversRides[randDriver2][1])):
                 solution.driversRides[randDriver1][1].append(solution.driversRides[randDriver2][1][i])
-            solution.driversRides[randDriver2][1].clear()
-        
-        elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) == 0:
-            print("No rides to swap")
-        
+            solution.driversRides[randDriver2][1].clear()        
         return solution
     
     def OneSwapRide(self, solution):
@@ -204,20 +192,47 @@ class Method :
                 randRide1 = random.randint(0,len(solution.driversRides[randDriver][1])-1)
                 randRide2 = random.randint(0,len(solution.driversRides[randDriver][1])-1)
             solution.driversRides[randDriver][1][randRide1], solution.driversRides[randDriver][1][randRide2] = solution.driversRides[randDriver][1][randRide2], solution.driversRides[randDriver][1][randRide1]
-        else:
-            print("No rides to swap")
         return solution
     
-    def SimulatedAnnealing(self, solution, maxIter):
+    def SimulatedAnnealing(self, maxIter, temp, alpha):
         #Simulated Annealing
+        #Initialize a random solution and set it as the best solution
+        ini_solution=self.RandomSolution()
+        best_solution=ini_solution
+        best_solution_cost=ini_solution.ObjectiveFunction(self.problem, ini_solution.driversRides)
+        #Select a random neighbor solution
         for i in range (0,maxIter):
-            solution2 = self.RandomSolution()
-            delta = solution2.objective - solution.objective
-            if delta < 0:
-                solution = solution2
-        return solution
-    
-method = Method(prob)
-sol = method.RandomSolution()
-sol.ObjectiveFunction(prob, sol.driversRides)
-print(sol.objective)
+            ran=random.uniform(0,1)
+            if ran<0.2:
+                new_solution=self.GiveOneDriver(ini_solution)
+            elif ran<0.4:
+                new_solution=self.GiveAllDriver(ini_solution)
+            elif ran<0.6:
+                new_solution=self.OneSwapRide(ini_solution)
+            elif ran<0.8:
+                new_solution=self.SimpleSwapDriver(ini_solution)
+            else:
+                new_solution=self.SwapAllDriver(ini_solution)
+            #Calculate the cost of the new solution and the initial solution
+            new_solution_cost=new_solution.ObjectiveFunction(self.problem, new_solution.driversRides)
+            ini_solution_cost=ini_solution.ObjectiveFunction(self.problem, ini_solution.driversRides)
+            delta=new_solution_cost-ini_solution_cost
+            #Check the feasibility of the new solution
+            feasible=new_solution.Feasability(self.problem)
+            if feasible==True:
+                #If it's cheaper, replace the initial solution with the new solution
+                if delta<0:
+                    ini_solution=new_solution
+                    #If it's the best solution, replace the best solution with the new solution
+                    if new_solution_cost<best_solution_cost:
+                        best_solution=new_solution
+                        best_solution_cost=new_solution_cost
+            #If delta>0, replace the initial solution with the new solution with a probability according to the temperature and the delta
+            elif random.uniform(0.01,0.99)<math.exp(-delta/temp):
+                ini_solution=new_solution
+            temp=temp*alpha
+        return best_solution, best_solution_cost
+#try the simulated annealing algorithm with prob
+method=Method(prob)
+sol=method.SimulatedAnnealing(1000,100,0.99)
+print(sol[0].driversRides,sol[1])
