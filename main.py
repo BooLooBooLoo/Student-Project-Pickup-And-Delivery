@@ -119,6 +119,60 @@ class Method :
         return solution
 
     def SwapAllDriver(self, solution):
+        randDriver1 = randDriver2 = 0
+        while randDriver1 == randDriver2 :
+            randDriver1 = random.randint(0,len(self.problem.drivers)-1)
+            randDriver2 = random.randint(0,len(self.problem.drivers)-1)
+        print("Drivers ", randDriver1, " and ", randDriver2, " are swapped")
+        if len(solution.driversRides[randDriver1][1]) > 0 and len(solution.driversRides[randDriver2][1]) > 0:
+            if len(solution.driversRides[randDriver1][1]) > len(solution.driversRides[randDriver2][1]):
+                for i in range (0,len(solution.driversRides[randDriver2][1])):
+                    solution.driversRides[randDriver1][1][i], solution.driversRides[randDriver2][1][i] = solution.driversRides[randDriver2][1][i], solution.driversRides[randDriver1][1][i]
+                for i in range (len(solution.driversRides[randDriver2][1]),len(solution.driversRides[randDriver1][1])):
+                    solution.driversRides[randDriver2][1].append(solution.driversRides[randDriver1][1][i])
+                    solution.driversRides[randDriver1][1].pop(i)
+            if len(solution.driversRides[randDriver1][1]) < len(solution.driversRides[randDriver2][1]):
+                for i in range (0,len(solution.driversRides[randDriver1][1])):
+                    solution.driversRides[randDriver1][1][i], solution.driversRides[randDriver2][1][i] = solution.driversRides[randDriver2][1][i], solution.driversRides[randDriver1][1][i]
+                for i in range (len(solution.driversRides[randDriver1][1]),len(solution.driversRides[randDriver2][1])):
+                    solution.driversRides[randDriver1][1].append(solution.driversRides[randDriver2][1][i])
+                    solution.driversRides[randDriver2][1].pop(i)
+            if len(solution.driversRides[randDriver1][1]) == len(solution.driversRides[randDriver2][1]):
+                for i in range (len(solution.driversRides[randDriver1][1])):
+                    solution.driversRides[randDriver1][1][i], solution.driversRides[randDriver2][1][i] = solution.driversRides[randDriver2][1][i], solution.driversRides[randDriver1][1][i]
+                
+        elif len(solution.driversRides[randDriver1][1]) > 0 and len(solution.driversRides[randDriver2][1]) == 0:
+            for i in range (0,len(solution.driversRides[randDriver1][1])):
+                solution.driversRides[randDriver2][1].append(solution.driversRides[randDriver1][1][i])
+            
+            solution.driversRides[randDriver1][1].clear()
+        elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) > 0:
+            for i in range (0,len(solution.driversRides[randDriver2][1])):
+                solution.driversRides[randDriver1][1].append(solution.driversRides[randDriver2][1][i])
+            
+            solution.driversRides[randDriver2][1].clear()
+        elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) == 0:
+            print("Both drivers have no rides")
+        return solution
+    
+    def GiveOneDriver(self, solution):
+        randDriver1 = randDriver2 = 0
+        while randDriver1 == randDriver2 :
+            randDriver1 = random.randint(0,len(self.problem.drivers)-1)
+            randDriver2 = random.randint(0,len(self.problem.drivers)-1)
+        if len(solution.driversRides[randDriver1][1]) > 0 :
+            randRide1 = random.randint(0,len(solution.driversRides[randDriver1][1])-1)
+            solution.driversRides[randDriver2][1].append(solution.driversRides[randDriver1][1][randRide1])
+            solution.driversRides[randDriver1][1].pop(randRide1)
+        elif len(solution.driversRides[randDriver1][1]) == 0 and len(solution.driversRides[randDriver2][1]) > 0:
+            randRide1 = random.randint(0,len(solution.driversRides[randDriver2][1])-1)
+            solution.driversRides[randDriver1][1].append(solution.driversRides[randDriver2][1][randRide1])
+            solution.driversRides[randDriver2][1].pop(randRide1)
+        else:
+            print("Both drivers have no rides")
+        return solution
+    
+    def GiveAllDriver(self, solution):
         
         #give all rides from a driver to another driver
         randDriver1 = randDriver2 = 0
@@ -140,16 +194,20 @@ class Method :
             print("No rides to swap")
         
         return solution
+    
     def OneSwapRide(self, solution):
         #Swap 2 rides of the same driver
         randDriver = random.randint(0,len(self.problem.drivers)-1)
         if len(solution.driversRides[randDriver][1]) > 1:
-            randRide1 = random.randint(0,len(solution.driversRides[randDriver][1])-1)
-            randRide2 = random.randint(0,len(solution.driversRides[randDriver][1])-1)
+            randRide1 = randRide2 = 0
+            while randRide1 == randRide2 :
+                randRide1 = random.randint(0,len(solution.driversRides[randDriver][1])-1)
+                randRide2 = random.randint(0,len(solution.driversRides[randDriver][1])-1)
             solution.driversRides[randDriver][1][randRide1], solution.driversRides[randDriver][1][randRide2] = solution.driversRides[randDriver][1][randRide2], solution.driversRides[randDriver][1][randRide1]
         else:
             print("No rides to swap")
         return solution
+    
     def SimulatedAnnealing(self, solution, maxIter):
         #Simulated Annealing
         for i in range (0,maxIter):
