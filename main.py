@@ -1,6 +1,6 @@
 import math
 import random
-import data
+#import data
 
 
 class Problem :
@@ -21,8 +21,7 @@ class Problem :
 prob = Problem([1,2,3],[(0,0),(0,0),(0,0)],1,1,['Home','School','Work'],[(2,2),(1,1),(3,3)],[('Home','School'),('Work','Home'),('School','Work')])
 
 class Solution :
-    
-    
+
     def __init__(self, driversRides, prob):
         self.driversRides = driversRides # list of tuples (driver,[rides])
         self.problem = prob
@@ -38,7 +37,6 @@ class Solution :
     def Feasability(self, prob):
         #Also check if all the rides are dispatch and if the ride isnt already assigned to a driver
         feasible = True
-        
         for i in range (0,len(self.driversRides)):
             if self.driversRides[i][0] not in self.problem.drivers :
                 feasible = False
@@ -46,11 +44,22 @@ class Solution :
                 if self.driversRides[i][1][j] not in self.problem.rides :
                     feasible = False
         
-        rideSum = []
+        #Check if all the rides are dispatched 
+        rides = []
         for i in range (0,len(self.driversRides)):
-            rideSum.append(len(self.driversRides[i][1]))
-        if sum(rideSum) != len(self.problem.rides):
-            feasible = False
+            for j in range (0,len(self.driversRides[i][1])):
+                rides.append(self.driversRides[i][1][j])
+        for i in range (0,len(self.problem.rides)):
+            if self.problem.rides[i] not in rides:
+                feasible = False
+        #Check if the rides are not assigned to multiple drivers
+        for i in range (0,len(self.driversRides)):
+            for j in range (0,len(self.driversRides[i][1])):
+                for k in range (0,len(self.driversRides)):
+                    if i != k:
+                        for l in range (0,len(self.driversRides[k][1])):
+                            if self.driversRides[i][1][j] == self.driversRides[k][1][l]:
+                                feasible = False
         
         return feasible
         
@@ -78,17 +87,20 @@ class Method :
         self.problem = problem
     
     def RandomSolution(self): #Construct a random solution
+        feasible = False
+        while  feasible == False:
+            tupleList = []
+            for i in range (0,len(self.problem.drivers)):
+                tupleList.append((self.problem.drivers[i],[]))
+                
+            for i in range (0,len(self.problem.rides)):
+                rand = random.randint(0,len(self.problem.drivers)-1)
+                tupleList[rand][1].append(self.problem.rides[i])
         
-        tupleList = []
-        for i in range (0,len(self.problem.drivers)):
-            tupleList.append((self.problem.drivers[i],[]))
-            
-        for i in range (0,len(self.problem.rides)):
-            rand = random.randint(0,len(self.problem.drivers)-1)
-            tupleList[rand][1].append(self.problem.rides[i])
-    
-        solution = Solution(tupleList, self.problem)
+            solution = Solution(tupleList, self.problem)
+            feasible = solution.Feasability(self.problem)
         return solution
+        
 
     def SimpleSwapDriver(self, solution):
         
