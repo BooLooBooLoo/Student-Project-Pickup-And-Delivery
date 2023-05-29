@@ -56,7 +56,8 @@ def get_data(debutTime,endTime):
             pointsCoords.append((longArrivalPoint[i],latArrivalPoint[i]))
         Begin = pointsCoords.index((longDeparturePoint[i],latDeparturePoint[i]))
         End = pointsCoords.index((longArrivalPoint[i],latArrivalPoint[i]))
-        rides.append((points[Begin],points[End]))
+        if (points[Begin],points[End]) not in rides:
+            rides.append((points[Begin],points[End]))
     print('Step 6')
     return [points, pointsCoords, rides, drivers, driverCoords]
 
