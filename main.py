@@ -1,17 +1,11 @@
 import math
 import random
-<<<<<<< HEAD
 from data import get_data
 import pandas as pd
 import numpy as np
 import datetime
 import pytz
 import openrouteservice
-=======
-import data
-
-
->>>>>>> parent of c8f0183 (divers files)
 class Problem :
     
     def __init__(self, drivers,driversCoord,speed,cost,points,pointsCoord, rides):
@@ -26,13 +20,8 @@ class Problem :
         self.points = points
         self.pointsCoord = pointsCoord
         self.rides = rides
-<<<<<<< HEAD
 data=get_data(datetime.datetime(2023, 1, 5, 0, 0, 0, 0,pytz.UTC),datetime.datetime(2023, 1, 5, 0, 30, 0, 0,pytz.UTC),0)
 prob = Problem(data[3],data[4],50,1,data[0],data[1],data[2])        
-=======
-        
-prob = Problem([1,2,3],[(0,0),(0,0),(0,0)],1,1,['Home','School','Work'],[(2,2),(1,1),(3,3)],[('Home','School'),('Work','Home'),('School','Work')])
->>>>>>> parent of c8f0183 (divers files)
 
 class Solution :
 
@@ -276,7 +265,6 @@ class Method :
         return best_solution, best_solution_cost
 #try the simulated annealing algorithm with prob
 method=Method(prob)
-<<<<<<< HEAD
 best_solution, best_solution_cost=method.SimulatedAnnealing(100, 100, 0.99)
 client = openrouteservice.Client(key='5b3ce3597851110001cf6248953dea1a63794872a30093a3907dfb03') # Specify your personal API key
 print(best_solution_cost)
@@ -293,7 +281,3 @@ for i in range(len(best_solution.driversRides)):
 #            coords.append(prob.pointsCoord[prob.points.index(best_solution.driversRides[i][1][j][1])])
 #        routes = client.directions(coords)
 #        print(routes['routes'][0]['summary']['duration'])
-=======
-sol=method.SimulatedAnnealing(1000,100,0.99)
-print(sol[0].driversRides,sol[1])
->>>>>>> parent of c8f0183 (divers files)
