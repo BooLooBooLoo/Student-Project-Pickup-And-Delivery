@@ -3,14 +3,13 @@ import numpy as np
 import time
 import datetime
 import pytz
-def get_data(debutTime,endTime):
+def get_data(debutTime,endTime,hour):
     #select only the data between the two dates in hours
     df = pd.read_csv('data.csv')
     df['trip_requested_at_date'] = pd.to_datetime(df['trip_requested_at_date'])
     df = df[(df['trip_requested_at_date'] >= debutTime) & (df['trip_requested_at_date'] <= endTime)]
     #Read the drivers file
-    df2=pd.read_csv('drivers_positions.csv')
-    df2 = df2[df2['status'] == 'ONLINE']
+    df2=pd.read_csv('drivers_positions_modified_'+str(hour)+'.csv')
     print('Step 1')
     #Convert the timestamp to datetime and select only the data between the two dates in hours
     df2['timestamp'] = pd.to_datetime(df2['timestamp'])
@@ -32,6 +31,7 @@ def get_data(debutTime,endTime):
     rides = []
     driversIdCheck=[]
     drivers = []
+    driversIdCheck = []
     driverCoords = []
     j=0
     print('Step 4')
@@ -56,10 +56,15 @@ def get_data(debutTime,endTime):
             pointsCoords.append((longArrivalPoint[i],latArrivalPoint[i]))
         Begin = pointsCoords.index((longDeparturePoint[i],latDeparturePoint[i]))
         End = pointsCoords.index((longArrivalPoint[i],latArrivalPoint[i]))
-        if (points[Begin],points[End]) not in rides:
-            rides.append((points[Begin],points[End]))
+        rides.append((points[Begin],points[End]))
     print('Step 6')
     return [points, pointsCoords, rides, drivers, driverCoords]
 
 #use datetime +utc as argument
-get_data(datetime.datetime(2023, 1, 5, 0, 0, 0, 0,pytz.UTC),datetime.datetime(2023, 1, 5, 0, 7, 0, 0,pytz.UTC))
+def csv_creator():
+    for i in range (24):
+        df = pd.read_csv('drivers_positions_modified.csv')
+        print(i)
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df = df[(df['timestamp'] >= datetime.datetime(2023, 1, 5, i, 0, 0, 0,pytz.UTC)) & (df['timestamp'] <= datetime.datetime(2023, 1, 5, i, 59, 59, 0,pytz.UTC))]
+        df.to_csv('drivers_positions_modified_'+str(i)+'.csv')
