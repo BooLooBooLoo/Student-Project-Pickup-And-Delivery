@@ -3,6 +3,7 @@ import numpy as np
 import time
 import datetime
 import pytz
+import math
 def get_data(debutTime,endTime,hour):
     #select only the data between the two dates in hours
     df = pd.read_csv('data.csv')
@@ -24,8 +25,8 @@ def get_data(debutTime,endTime,hour):
     latArrivalPoint=df.destination_lat.values.tolist()
     driversId=df2.driver.values.tolist()
     print(len(driversId))
-    driversLon=df2.lon.values.tolist()
-    driversLat=df2.lat.values.tolist()
+    driversLon=df2.lat.values.tolist()
+    driversLat=df2.lon.values.tolist()
     points = []
     pointsCoords=[]
     rides = []
@@ -59,7 +60,28 @@ def get_data(debutTime,endTime,hour):
         if (points[Begin],points[End]) not in rides:
             rides.append((points[Begin],points[End]))
     print('Step 6')
-    return [points, pointsCoords, rides, drivers, driverCoords]
+    #Keep only the drivers that are near enough to the points
+    sortedDrivers=[]
+    sortedDriversCoords=[]
+    for i in range(len(pointsCoords)):
+        for j in range(len(drivers)):
+            lng_1 = pointsCoords[i][0]
+            lat_1 = pointsCoords[i][1]
+            lng_2 = driverCoords[j][0]
+            lat_2 = driverCoords[j][1]
+            lat_1, lng_1, lat_2, lng_2 = map(math.radians, [lat_1, lng_1, lat_2, lng_2])
+            d_lat = lat_2 - lat_1
+            d_lng = lng_2 - lng_1
+            temp=(math.sin(d_lat / 2) ** 2 + math.cos(lat_1) * math.cos(lat_2) * math.sin(d_lng / 2) ** 2)
+            distance = 6373.0 * (2 * math.atan2(math.sqrt(temp), math.sqrt(1 - temp)))            
+            if(distance<25):
+                if drivers[j] not in sortedDrivers:
+                    sortedDrivers.append(drivers[j])
+                    sortedDriversCoords.append(driverCoords[j])
+    print('Step 7')
+    print(len(sortedDrivers))
+    print(len(drivers))
+    return [points, pointsCoords, rides, sortedDrivers, sortedDriversCoords]
 
 #use datetime +utc as argument
 def csv_creator():

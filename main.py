@@ -69,7 +69,21 @@ class Solution :
                     if k != i:
                         if self.driversRides[i][1][j] in self.driversRides[k][1]:
                             feasible = False
-        
+        #Check if the drivers don't do more than 10 kilometers to go to their first ride
+        for i in range (0,len(self.driversRides)):
+            if len(self.driversRides[i][1]) != 0:
+                ind = self.problem.points.index(self.driversRides[i][1][0][0])
+                lat_1 = self.problem.pointsCoord[ind][1]
+                lng_1 = self.problem.pointsCoord[ind][0]
+                lat_2 = self.problem.driversCoord[i][1]
+                lng_2 = self.problem.driversCoord[i][0]
+                lat_1, lng_1, lat_2, lng_2 = map(math.radians, [lat_1, lng_1, lat_2, lng_2])
+                d_lat = lat_2 - lat_1
+                d_lng = lng_2 - lng_1
+                temp=(math.sin(d_lat / 2) ** 2 + math.cos(lat_1) * math.cos(lat_2) * math.sin(d_lng / 2) ** 2)
+                distance = 6373.0 * (2 * math.atan2(math.sqrt(temp), math.sqrt(1 - temp)))
+                if distance > 25:
+                    feasible = False
         return feasible
         
     
@@ -80,15 +94,13 @@ class Solution :
                 ind = self.problem.points.index(driversRides[i][1][0][0])
                 lat_1 = self.problem.pointsCoord[ind][1]
                 lng_1 = self.problem.pointsCoord[ind][0]
-                lat_2 = self.problem.driversCoord[i][0]
-                lng_2 = self.problem.driversCoord[i][1]
-                print(lat_1,lng_1,lat_2,lng_2)
+                lat_2 = self.problem.driversCoord[i][1]
+                lng_2 = self.problem.driversCoord[i][0]
                 lat_1, lng_1, lat_2, lng_2 = map(math.radians, [lat_1, lng_1, lat_2, lng_2])
                 d_lat = lat_2 - lat_1
                 d_lng = lng_2 - lng_1
                 temp=(math.sin(d_lat / 2) ** 2 + math.cos(lat_1) * math.cos(lat_2) * math.sin(d_lng / 2) ** 2)
                 distance = 6373.0 * (2 * math.atan2(math.sqrt(temp), math.sqrt(1 - temp)))
-                print(distance)
                 self.objective += distance
                 for j in range (0,len(driversRides[i][1])):
                     self.objective += self.DistanceBetweenPoints(driversRides[i][1][j][0],driversRides[i][1][j][1]) * self.problem.driversCost
@@ -111,10 +123,24 @@ class Method :
             for i in range (0,len(self.problem.drivers)):
                 tupleList.append((self.problem.drivers[i],[]))
                 
+            #for i in range (0,len(self.problem.rides)):
+            #    rand = random.randint(0,len(self.problem.drivers)-1)
+            #    tupleList[rand][1].append(self.problem.rides[i])
+            #Randomly assign rides to drivers near enough to the departure point
             for i in range (0,len(self.problem.rides)):
-                rand = random.randint(0,len(self.problem.drivers)-1)
+                distance=51
+                while distance > 25:
+                    rand = random.randint(0,len(self.problem.drivers)-1)
+                    lat_1 = self.problem.pointsCoord[self.problem.points.index(self.problem.rides[i][0])][1]
+                    lng_1 = self.problem.pointsCoord[self.problem.points.index(self.problem.rides[i][0])][0]
+                    lat_2 = self.problem.driversCoord[rand][1]
+                    lng_2 = self.problem.driversCoord[rand][0]
+                    lat_1, lng_1, lat_2, lng_2 = map(math.radians, [lat_1, lng_1, lat_2, lng_2])
+                    d_lat = lat_2 - lat_1
+                    d_lng = lng_2 - lng_1
+                    temp=(math.sin(d_lat / 2) ** 2 + math.cos(lat_1) * math.cos(lat_2) * math.sin(d_lng / 2) ** 2)
+                    distance = 6373.0 * (2 * math.atan2(math.sqrt(temp), math.sqrt(1 - temp)))
                 tupleList[rand][1].append(self.problem.rides[i])
-        
             solution = Solution(tupleList, self.problem)
             feasible = solution.Feasability(self.problem)
         return solution
@@ -265,7 +291,7 @@ class Method :
         return best_solution, best_solution_cost
 #try the simulated annealing algorithm with prob
 method=Method(prob)
-best_solution, best_solution_cost=method.SimulatedAnnealing(100, 100, 0.99)
+best_solution, best_solution_cost=method.SimulatedAnnealing(1000, 100, 0.99)
 client = openrouteservice.Client(key='5b3ce3597851110001cf6248953dea1a63794872a30093a3907dfb03') # Specify your personal API key
 print(best_solution_cost)
 for i in range(len(best_solution.driversRides)):
