@@ -5,7 +5,10 @@ import pandas as pd
 import numpy as np
 import datetime
 import pytz
-import openrouteservice
+import folium
+from geopy.distance import distance
+
+#import openrouteservice
 class Problem :
     
     def __init__(self, drivers,driversCoord,speed,cost,points,pointsCoord, rides):
@@ -68,6 +71,7 @@ class Solution :
                 for k in range (0,len(self.driversRides)):
                     if k != i:
                         if self.driversRides[i][1][j] in self.driversRides[k][1]:
+                            print("ride assigned to multiple drivers")
                             feasible = False
         #Check if the drivers don't do more than 10 kilometers to go to their first ride
         for i in range (0,len(self.driversRides)):
@@ -129,7 +133,7 @@ class Method :
             #Randomly assign rides to drivers near enough to the departure point
             for i in range (0,len(self.problem.rides)):
                 distance=51
-                while distance > 25:
+                while distance > 50:
                     rand = random.randint(0,len(self.problem.drivers)-1)
                     lat_1 = self.problem.pointsCoord[self.problem.points.index(self.problem.rides[i][0])][1]
                     lng_1 = self.problem.pointsCoord[self.problem.points.index(self.problem.rides[i][0])][0]
@@ -291,19 +295,51 @@ class Method :
         return best_solution, best_solution_cost
 #try the simulated annealing algorithm with prob
 method=Method(prob)
-best_solution, best_solution_cost=method.SimulatedAnnealing(1000, 100, 0.99)
-client = openrouteservice.Client(key='5b3ce3597851110001cf6248953dea1a63794872a30093a3907dfb03') # Specify your personal API key
-print(best_solution_cost)
+best_solution, best_solution_cost=method.SimulatedAnnealing(100, 100, 0.99)
+solution = []
 for i in range(len(best_solution.driversRides)):
     if len(best_solution.driversRides[i][1])>0:
-        print(best_solution.driversRides[i])
-#Use the API to calculate the time between the points
-#for i in range(len(best_solution.driversRides)):
-#    if len(best_solution.driversRides[i][1])>0:
-#        coords=[]
-#        coords.append(prob.driversCoord[i])
-#        for j in range(len(best_solution.driversRides[i][1])):
-#            coords.append(prob.pointsCoord[prob.points.index(best_solution.driversRides[i][1][j][0])])
-#            coords.append(prob.pointsCoord[prob.points.index(best_solution.driversRides[i][1][j][1])])
-#        routes = client.directions(coords)
-#        print(routes['routes'][0]['summary']['duration'])
+        solution.append(best_solution.driversRides[i])
+
+
+
+
+def Itinary(solution):
+    m = folium.Map(location=[data[4][0][1], data[4][0][0]], zoom_start=12)
+    for j in range(len(solution)):
+        hex = ["#"+''.join([random.choice('ABCDEF0123456789') for i in range(6)])]
+        route = solution[j]
+        print(route)
+        ind = data[3].index(route[0])
+        if len(route[0][1]) == 0:
+            return "No route found"
+        else:
+            for i in range(len(route[0][1])+1):
+                if i == 0:
+                    loc = (float(data[4][ind][1]),float(data[4][ind][0]))
+                    loc2 = (float(data[1][data[0].index(route[1][i][0])][1]),float(data[1][data[0].index(route[1][i][0])][0]))
+                    folium.Marker(loc, popup = route[0]).add_to(m)
+                    word = "("+str(data[1][data[0].index(route[1][i][0])][1])+","+str(data[1][data[0].index(route[1][i][0])][0])+")"
+                    folium.Marker(loc2, popup = word).add_to(m)
+                    folium.PolyLine(locations=[loc, loc2], color=hex).add_to(m)
+                elif i < len(route[0][1]):
+                    loc = (float(data[1][data[0].index(route[1][i-1][1])][1]),float(data[1][data[0].index(route[1][i-1][1])][0]))
+                    loc2 = (float(data[1][data[0].index(route[1][i][0])][1]),float(data[1][data[0].index(route[1][i][0])][0]))
+                    word = "("+str(data[1][data[0].index(route[1][i-1][0])][1])+","+str(data[1][data[0].index(route[1][i-1][0])][0])+")"
+                    folium.Marker(loc, popup= word).add_to(m)
+                    word = "("+str(data[1][data[0].index(route[1][i][0])][1])+","+str(data[1][data[0].index(route[1][i][0])][0])+")"
+                    folium.Marker(loc2, popup = word).add_to(m)
+                    folium.PolyLine(locations=[loc, loc2], color=hex).add_to(m)
+                else :
+                    loc = (float(data[1][data[0].index(route[1][i-1][0])][1]),float(data[1][data[0].index(route[1][i-1][0])][0]))
+                    loc2 = (float(data[1][data[0].index(route[1][i-1][1])][1]),float(data[1][data[0].index(route[1][i-1][1])][0]))
+                    word = "("+str(data[1][data[0].index(route[1][i-1][0])][1])+","+str(data[1][data[0].index(route[1][i-1][0])][0])+")"
+                    folium.Marker(loc, popup= word).add_to(m)
+                    word = "("+str(data[1][data[0].index(route[1][i-1][1])][1])+","+str(data[1][data[0].index(route[1][i-1][1])][0])+")"
+                    folium.Marker(loc2, popup = word).add_to(m)
+                    folium.PolyLine(locations=[loc, loc2], color=hex).add_to(m)
+                
+    m.show_in_browser()
+    
+print(Itinary(solution))   
+

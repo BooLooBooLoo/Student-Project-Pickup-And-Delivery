@@ -74,7 +74,7 @@ def get_data(debutTime,endTime,hour):
             d_lng = lng_2 - lng_1
             temp=(math.sin(d_lat / 2) ** 2 + math.cos(lat_1) * math.cos(lat_2) * math.sin(d_lng / 2) ** 2)
             distance = 6373.0 * (2 * math.atan2(math.sqrt(temp), math.sqrt(1 - temp)))            
-            if(distance<25):
+            if(distance<50):
                 if drivers[j] not in sortedDrivers:
                     sortedDrivers.append(drivers[j])
                     sortedDriversCoords.append(driverCoords[j])
